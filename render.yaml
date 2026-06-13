@@ -3,6 +3,7 @@ services:
     name: anarockone
     runtime: docker
     plan: free
+    healthCheckPath: /health
     envVars:
       - key: OPENAI_API_KEY
         sync: false
