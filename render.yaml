@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: anarockone
+    runtime: docker
+    plan: free
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_ORGANISATION_ID
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_TEMPERATURE
+        value: "0"
