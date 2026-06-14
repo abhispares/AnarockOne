@@ -130,8 +130,13 @@ button {
   min-height: 0;
   height: calc(100vh - 64px);
   overflow-y: auto;
-  padding: 38px 0 120px;
+  padding: 38px 0 28px;
+  scroll-padding-bottom: 156px;
   scrollbar-gutter: stable;
+}
+
+.chat-active {
+  padding-bottom: 0;
 }
 
 .intro {
@@ -161,7 +166,7 @@ button {
 .messages {
   display: grid;
   gap: 20px;
-  padding-bottom: 10px;
+  padding-bottom: 0;
 }
 
 .messages.active {
@@ -217,6 +222,10 @@ button {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   line-height: 1.62;
+}
+
+.scroll-anchor {
+  height: 156px;
 }
 
 .typing-cursor {
@@ -314,6 +323,7 @@ button {
 .composer {
   display: grid;
   grid-template-columns: 146px minmax(0, 1fr) 42px;
+  align-items: end;
   gap: 10px;
   width: min(860px, calc(100% - 32px));
   padding: 10px;
@@ -334,6 +344,7 @@ button {
   z-index: 2;
   transform: translateX(-50%);
   margin: 0;
+  max-height: 118px;
 }
 
 .composer-bottom::before {
@@ -369,10 +380,13 @@ button {
 }
 
 .composer textarea {
+  height: 42px;
   min-height: 42px;
-  max-height: 140px;
-  resize: vertical;
+  max-height: 86px;
+  overflow-y: auto;
+  resize: none;
   padding: 10px 0;
+  line-height: 1.35;
 }
 
 .composer button {
@@ -423,10 +437,19 @@ button {
 
   .chat {
     padding-top: 26px;
+    scroll-padding-bottom: 190px;
   }
 
   .composer {
     grid-template-columns: minmax(0, 1fr) 42px;
+  }
+
+  .composer-bottom {
+    max-height: 154px;
+  }
+
+  .scroll-anchor {
+    height: 190px;
   }
 
   .stakeholder-search {
@@ -437,5 +460,11 @@ button {
 
   .stakeholder-search input {
     height: 34px;
+  }
+
+  .composer textarea {
+    height: 58px;
+    min-height: 58px;
+    padding: 8px 0;
   }
 }

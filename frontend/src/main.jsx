@@ -49,6 +49,14 @@ const sourceIcons = {
 const TYPE_SPEED_MS = 12;
 const TYPE_CHUNK_SIZE = 3;
 
+function createMessageId() {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `message-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
 function SourceIcon({ source }) {
   const Icon = sourceIcons[source] || MessageSquareText;
   return <Icon size={14} aria-hidden="true" />;
@@ -77,7 +85,7 @@ function App() {
 
     setMessages((current) => [
       ...current,
-      { id: crypto.randomUUID(), role: "user", content: query },
+      { id: createMessageId(), role: "user", content: query },
     ]);
     setInput("");
     setError("");
@@ -101,7 +109,7 @@ function App() {
 
       const payload = await response.json();
       const output = payload.output || {};
-      const assistantMessageId = crypto.randomUUID();
+      const assistantMessageId = createMessageId();
       setMessages((current) => [
         ...current,
         {
@@ -123,7 +131,7 @@ function App() {
       setMessages((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: createMessageId(),
           role: "assistant",
           content: "",
           fullContent:
@@ -197,7 +205,7 @@ function App() {
         <div className="status">POC data</div>
       </header>
 
-      <section className="chat">
+      <section className={`chat ${hasStarted ? "chat-active" : ""}`}>
         <div className={`intro ${hasStarted ? "compact-intro" : ""}`}>
           {!hasStarted ? <h1>AnarockOne</h1> : null}
         </div>
@@ -241,7 +249,7 @@ function App() {
               </div>
             </article>
           ) : null}
-          <div ref={messagesEndRef} />
+          <div className="scroll-anchor" ref={messagesEndRef} aria-hidden="true" />
         </div>
 
         {error ? (
@@ -293,7 +301,7 @@ function Composer({
         ref={inputRef}
         value={input}
         onChange={(event) => setInput(event.target.value)}
-        placeholder="Ask about warm intros, commitments, concerns, or missed opportunities..."
+        placeholder="Ask about warm intros, commitments, or concerns..."
         rows="1"
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
