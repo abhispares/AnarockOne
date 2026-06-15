@@ -74,6 +74,17 @@ class FakeContactReferenceResponse:
     }"""
 
 
+class FakeActiveEngagementResponse:
+    content = """{
+        "answer": "Active Engagements\\nResidential Sales\\nInventory review discussions\\n4 meetings in last 2 weeks\\nCommercial\\nOffice leasing mandate review\\nMost Engaged Stakeholders\\n1. Rahul Verma - Residential Sales\\n2. Neha Gupta - Consulting\\nTotal Active Teams\\n5 Departments",
+        "follow_up_questions": [
+            "Show recent Anarock references for Godrej Properties",
+            "List developer-side contacts for Godrej Properties",
+            "Show internal teams engaged with Godrej Properties"
+        ]
+    }"""
+
+
 class FakeChatOpenAIForGreeting:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
@@ -96,6 +107,20 @@ class FakeChatOpenAIForContactReference:
         assert "Kabir Arora" in prompt
         assert "Radhika Singh" in prompt
         return FakeContactReferenceResponse()
+
+
+class FakeChatOpenAIForActiveEngagement:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def invoke(self, prompt: str) -> FakeActiveEngagementResponse:
+        assert "Current answer mode: contact_reference" in prompt
+        assert "Active department engagements" in prompt
+        assert "Residential Sales | Rahul Verma" in prompt
+        assert "4 meetings in last 2 weeks" in prompt
+        assert "Total Active Teams" in prompt
+        assert "Pending collections" not in prompt
+        return FakeActiveEngagementResponse()
 
 
 def test_llm_response_invoke(monkeypatch) -> None:
@@ -166,6 +191,24 @@ def test_relationship_intelligence_contact_reference_mode(monkeypatch) -> None:
     assert "DLF" in body["stakeholders"][0]
     assert "Kabir Arora" in body["answer"]
     assert len(body["follow_up_questions"]) == 3
+
+
+def test_relationship_intelligence_active_engagement_mode(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-token")
+    monkeypatch.setenv("OPENAI_MODEL", "test-model")
+    monkeypatch.setattr(llm_response, "ChatOpenAI", FakeChatOpenAIForActiveEngagement)
+
+    response = client.post(
+        "/relationship-intelligence/invoke",
+        json={"input": {"query": "Who is currently engaging with Godrej?"}},
+    )
+
+    assert response.status_code == 200
+    body = response.json()["output"]
+    assert body["query"] == "Who is currently engaging with Godrej?"
+    assert "Godrej Properties" in body["stakeholders"][0]
+    assert "Active Engagements" in body["answer"]
+    assert "5 Departments" in body["answer"]
 
 
 def test_relationship_intelligence_greeting_does_not_default_to_lodha(monkeypatch) -> None:

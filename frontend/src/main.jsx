@@ -55,36 +55,130 @@ function SourceIcon({ source }) {
   return <Icon size={14} aria-hidden="true" />;
 }
 
-function FormattedMessageText({ text }) {
-  const lines = text.split("\n");
+function renderInlineText(text, keyPrefix) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
 
-  return lines.map((line, lineIndex) => {
-    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
-    const content = headingMatch ? headingMatch[2] : line;
-    const parts = content.split(/(\*\*[^*]+\*\*)/g);
-    const renderedParts = parts.map((part, partIndex) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={`${lineIndex}-${partIndex}`}>{part.slice(2, -2)}</strong>;
-      }
-
-      return <React.Fragment key={`${lineIndex}-${partIndex}`}>{part}</React.Fragment>;
-    });
-
-    if (headingMatch) {
-      return (
-        <React.Fragment key={`line-${lineIndex}`}>
-          <span className="message-heading">{renderedParts}</span>
-          {lineIndex < lines.length - 1 ? "\n" : null}
-        </React.Fragment>
-      );
+  return parts.map((part, partIndex) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={`${keyPrefix}-${partIndex}`}>{part.slice(2, -2)}</strong>;
     }
 
+    return <React.Fragment key={`${keyPrefix}-${partIndex}`}>{part}</React.Fragment>;
+  });
+}
+
+function isTableLine(line) {
+  return line.trim().startsWith("|") && line.trim().endsWith("|");
+}
+
+function isTableSeparator(line) {
+  return /^\s*\|?[\s:-]+\|[\s|:-]*\|?\s*$/.test(line);
+}
+
+function parseTableLine(line) {
+  return line
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+
+function MessageTable({ lines, tableIndex }) {
+  const rows = lines.filter((line) => !isTableSeparator(line)).map(parseTableLine);
+  const [header = [], ...bodyRows] = rows;
+
+  if (!header.length || !bodyRows.length) {
     return (
-      <React.Fragment key={`line-${lineIndex}`}>
-        {renderedParts}
-        {lineIndex < lines.length - 1 ? "\n" : null}
-      </React.Fragment>
+      <div className="message-paragraph">
+        {lines.map((line, lineIndex) => (
+          <React.Fragment key={`fallback-${tableIndex}-${lineIndex}`}>
+            {renderInlineText(line, `fallback-${tableIndex}-${lineIndex}`)}
+            {lineIndex < lines.length - 1 ? <br /> : null}
+          </React.Fragment>
+        ))}
+      </div>
     );
+  }
+
+  return (
+    <div className="message-table-wrap">
+      <table className="message-table">
+        <thead>
+          <tr>
+            {header.map((cell, cellIndex) => (
+              <th key={`table-${tableIndex}-head-${cellIndex}`}>
+                {renderInlineText(cell, `table-${tableIndex}-head-${cellIndex}`)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {bodyRows.map((row, rowIndex) => (
+            <tr key={`table-${tableIndex}-row-${rowIndex}`}>
+              {header.map((_, cellIndex) => (
+                <td key={`table-${tableIndex}-row-${rowIndex}-${cellIndex}`}>
+                  {renderInlineText(row[cellIndex] || "", `table-${tableIndex}-${rowIndex}-${cellIndex}`)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function FormattedMessageText({ text }) {
+  const lines = text.split("\n");
+  const blocks = [];
+  let cursor = 0;
+
+  while (cursor < lines.length) {
+    if (isTableLine(lines[cursor])) {
+      const tableLines = [];
+      while (cursor < lines.length && isTableLine(lines[cursor])) {
+        tableLines.push(lines[cursor]);
+        cursor += 1;
+      }
+      blocks.push({ type: "table", lines: tableLines });
+      continue;
+    }
+
+    const paragraphLines = [];
+    while (cursor < lines.length && !isTableLine(lines[cursor])) {
+      paragraphLines.push(lines[cursor]);
+      cursor += 1;
+    }
+    blocks.push({ type: "text", lines: paragraphLines });
+  }
+
+  return blocks.map((block, blockIndex) => {
+    if (block.type === "table") {
+      return <MessageTable key={`table-${blockIndex}`} lines={block.lines} tableIndex={blockIndex} />;
+    }
+
+    return block.lines.map((line, lineIndex) => {
+      const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      const content = headingMatch ? headingMatch[2] : line;
+      const renderedParts = renderInlineText(content, `${blockIndex}-${lineIndex}`);
+
+      if (headingMatch) {
+        return (
+          <React.Fragment key={`line-${blockIndex}-${lineIndex}`}>
+            <span className="message-heading">{renderedParts}</span>
+            {lineIndex < block.lines.length - 1 ? <br /> : null}
+          </React.Fragment>
+        );
+      }
+
+      return (
+        <React.Fragment key={`line-${blockIndex}-${lineIndex}`}>
+          {line ? renderInlineText(line, `${blockIndex}-${lineIndex}`) : <br />}
+          {lineIndex < block.lines.length - 1 && line ? <br /> : null}
+        </React.Fragment>
+      );
+    });
   });
 }
 
@@ -387,8 +481,6 @@ function App() {
             {!hasStarted ? <h1>Anarock ONE</h1> : null}
           </div>
 
-          {!hasStarted ? <Composer hasStarted={hasStarted} input={input} setInput={setInput} isLoading={isLoading} inputRef={inputRef} handleSubmit={handleSubmit} /> : null}
-
           <div className={`messages ${hasStarted ? "active" : ""}`}>
             {messages.map((message) => (
               message.content || message.isTyping ? (
@@ -454,13 +546,10 @@ function App() {
                     )
                   ) : null}
                   {editingMessageId !== message.id ? (
-                    <p>
+                    <div className="formatted-message">
                       <FormattedMessageText text={message.content} />
                       {message.isTyping ? <span className="typing-cursor" /> : null}
-                    </p>
-                  ) : null}
-                  {!message.isTyping && message.sources?.length ? (
-                    <Sources sources={message.sources} />
+                    </div>
                   ) : null}
                   {!message.isTyping && message.followUps?.length ? (
                     <FollowUps
@@ -468,6 +557,9 @@ function App() {
                       isLoading={isLoading}
                       onSelect={(question) => sendQuery(question)}
                     />
+                  ) : null}
+                  {!message.isTyping && message.sources?.length ? (
+                    <Sources sources={message.sources} />
                   ) : null}
                 </div>
                 </article>
@@ -499,11 +591,9 @@ function App() {
         </section>
       </div>
 
-      {hasStarted ? (
-        <div className="composer-dock">
-          <Composer hasStarted={hasStarted} input={input} setInput={setInput} isLoading={isLoading} inputRef={inputRef} handleSubmit={handleSubmit} />
-        </div>
-      ) : null}
+      <div className={`composer-dock ${hasStarted ? "composer-dock-active" : "composer-dock-home"}`}>
+        <Composer hasStarted={hasStarted} input={input} setInput={setInput} isLoading={isLoading} inputRef={inputRef} handleSubmit={handleSubmit} />
+      </div>
     </main>
   );
 }
@@ -522,7 +612,7 @@ function Composer({
         ref={inputRef}
         value={input}
         onChange={(event) => setInput(event.target.value)}
-        placeholder="Hi Anuj, how can we help you?"
+        placeholder={hasStarted ? "Ask anything" : "Hi Anuj, how can I help you?"}
         rows="1"
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {

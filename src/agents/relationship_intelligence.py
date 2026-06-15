@@ -1034,6 +1034,103 @@ def _apply_reference_showcase_updates() -> None:
             account_brief["recent_reference_contacts"] = references
 
 
+ACTIVE_ENGAGEMENT_SHOWCASE_UPDATES: dict[str, list[str]] = {
+    "Godrej Properties": [
+        "Residential Sales | Rahul Verma, City Lead - Residential Sales, Mumbai | met Abhishek Jain, Business Sponsor, Godrej Properties | 4 meetings in last 2 weeks | Inventory review discussions for new mandate pipeline.",
+        "Commercial | Karan Malhotra, National Head - Commercial Leasing, Mumbai | met Jiwesh Desai, Procurement Head, Godrej Properties | 2 meetings in last 2 weeks | Office leasing mandate review and procurement dependencies.",
+        "Retail | Priya Sethi, Head - Retail Advisory, Mumbai | met Nidhi Kapoor, Legal Counsel, Godrej Properties | 1 meeting in last 10 days | Mall marketing proposal discussion and legal terms alignment.",
+        "Land Services | Arvind Rao, City Lead - Land Services, Mumbai | met Abhishek Jain, Business Sponsor, Godrej Properties | 2 meetings in last 3 weeks | Land acquisition advisory engagement for western suburbs.",
+        "Consulting | Neha Gupta, Director - Consulting, Mumbai | met Nidhi Kapoor, Legal Counsel, Godrej Properties | 3 meetings in last 2 weeks | Market assessment study in progress for launch pricing and absorption.",
+    ],
+    "Lodha Group": [
+        "Residential Sales | Ananya Rao, Enterprise Sales Director, Mumbai | met Abhishek Lodha, CFO Office, Lodha Group | 3 meetings in last 2 weeks | Premium launch inventory and sales velocity review.",
+        "Anarock Digital | Kabir Arora, VP Growth, Mumbai | met Jiwesh Mehta, Digital Marketing Lead, Lodha Group | 2 meetings in last 10 days | Campaign performance and lead-quality review.",
+        "Revenue Ops | Leena Rao, Head of Revenue Ops, Mumbai | met Rohit Kulkarni, Site Sales Head, Lodha Group | 2 meetings in last week | Lead-contact governance and duplicate follow-up control.",
+        "Business Development | Rohan Shah, Business Development Lead, Mumbai | met Abhishek Lodha, CFO Office, Lodha Group | 1 meeting in last week | Renewal scope and invoice reconciliation follow-up.",
+    ],
+    "Oberoi Realty": [
+        "Anarock Digital | Aditi Nair, Product Director, Mumbai | met Rahul Oberoi, Digital Head, Oberoi Realty | 3 meetings in last 2 weeks | Integration checklist and delivery reset.",
+        "Enterprise Sales | Aman Verma, Enterprise Sales Director, Mumbai | met Rahul Oberoi, Digital Head, Oberoi Realty | 2 meetings in last week | Senior escalation and commercial protection.",
+        "Revenue Ops | Leena Rao, Head of Revenue Ops, Mumbai | met Abhishek Narang, Sales Director, Oberoi Realty | 2 meetings in last week | No-duplicate-contact rules for high-intent leads.",
+        "Business Development | Sonal Mehra, Business Development Lead, Mumbai | met Nidhi Mehra, Finance Controller, Oberoi Realty | 1 meeting in last week | Payment release conditions.",
+    ],
+}
+
+
+def _apply_active_engagement_showcase_updates() -> None:
+    for account_name, engagements in ACTIVE_ENGAGEMENT_SHOWCASE_UPDATES.items():
+        account_brief = ACCOUNT_BRIEFS_BY_DEVELOPER.get(account_name)
+        if account_brief:
+            account_brief["active_engagements"] = engagements
+
+
+LEADERSHIP_DASHBOARD_SHOWCASE: dict[str, Any] = {
+    "weekly_developer_concerns": {
+        "Residential": ["Lead quality and conversion rates", "Inventory visibility"],
+        "Commercial": ["Occupancy performance", "Leasing pipeline updates"],
+        "Retail": ["Marketing ROI and footfall analysis"],
+        "Land": ["Due diligence timelines", "Valuation support"],
+        "Legal": ["Agreement renewals", "Documentation approvals"],
+        "Consulting": ["Pricing strategy recommendations", "Market intelligence requests"],
+        "most_mentioned_concern": "Lead quality and sales conversion performance.",
+    },
+    "leadership_attention_accounts": [
+        "DLF | Multiple open escalations across Sales and Legal",
+        "Sobha Realty | High engagement across teams but no consolidated account view",
+        "Prestige Group | Consulting deliverables pending for 10+ days",
+        "Godrej Properties | No leadership interaction in the last 60 days despite active mandates",
+        "Recommended Focus | DLF and Sobha require immediate leadership review.",
+    ],
+    "developer_health_cards": {
+        "DLF": {
+            "active_escalations": [
+                "Residential Sales | Concern raised regarding lead quality for a flagship project | Escalation open for 4 days",
+                "Legal | Agreement renewal pending due to contractual clause revisions | Awaiting developer approval",
+                "Commercial | Delay in campaign performance reporting | Escalated by Regional Head",
+            ],
+            "recommended_action": "Leadership review required with Sales and Legal stakeholders this week.",
+            "complete_health": [
+                "Relationship Status | Strong",
+                "Departments Engaged | Residential Sales; Commercial; Retail; Land Services; Consulting; Legal",
+                "Last 30 Days | 28 Meetings; 17 Stakeholders; 4 Leadership Interactions",
+                "Open Risks | 1 Sales escalation; 1 Legal dependency",
+                "Upcoming Commitments | Campaign review due Thursday; Agreement renewal due next week",
+                "AI Recommendation | Schedule a leadership review with DLF next week to close pending legal and sales concerns.",
+            ],
+        },
+        "Sobha Realty": {
+            "commitments": [
+                "Residential Sales | Monthly performance review dashboard to be shared by 20 June",
+                "Commercial | Leasing pipeline review scheduled next week",
+                "Consulting | Market benchmarking report committed by 25 June",
+                "Retail | Footfall analysis presentation under preparation",
+                "Land | Land valuation report to be delivered this month",
+                "Legal | Draft agreement revision to be shared by Friday",
+                "Risk Alert | 3 commitments due within the next 5 business days.",
+            ],
+            "cross_team_interactions": [
+                "Residential Sales | 12 Meetings; 4 Performance Reviews",
+                "Commercial | 5 Meetings",
+                "Retail | 3 Strategy Discussions",
+                "Land Services | 4 Advisory Meetings",
+                "Consulting | 6 Workshops",
+                "Legal | 2 Contract Review Sessions",
+                "Engagement Summary | 32 Total Interactions; 6 Departments Engaged; 14 Internal Stakeholders; 3 Ongoing Initiatives",
+                "Relationship Health Score | 92/100",
+                "Most Engaged Function | Residential Sales",
+            ],
+        },
+    },
+}
+
+
+def _apply_leadership_dashboard_showcase_updates() -> None:
+    for account_name, card in LEADERSHIP_DASHBOARD_SHOWCASE["developer_health_cards"].items():
+        account_brief = ACCOUNT_BRIEFS_BY_DEVELOPER.get(account_name)
+        if account_brief:
+            account_brief.update(card)
+
+
 def _replace_builder_names(value: Any) -> Any:
     if isinstance(value, str):
         replaced = value
@@ -1056,6 +1153,8 @@ DUMMY_RELATIONSHIP_DATA = _replace_builder_names(DUMMY_RELATIONSHIP_DATA)
 _apply_escalation_showcase_updates()
 _apply_contact_showcase_updates()
 _apply_reference_showcase_updates()
+_apply_active_engagement_showcase_updates()
+_apply_leadership_dashboard_showcase_updates()
 
 
 def _tokens(text: str) -> set[str]:
@@ -1076,6 +1175,16 @@ CONTACT_QUERY_TOKENS = {
     "meeting",
     "interacted",
     "interaction",
+    "interactions",
+    "engaging",
+    "engagement",
+    "engagements",
+    "active",
+    "currently",
+    "department",
+    "departments",
+    "activity",
+    "activities",
     "recent",
     "recently",
     "who",
@@ -1110,13 +1219,29 @@ HEALTH_QUERY_TOKENS = {
     "blockers",
     "booking",
     "bookings",
+    "concern",
+    "concerns",
+    "commitment",
+    "commitments",
+    "leadership",
+    "attention",
+    "priority",
+    "priorities",
+    "discussed",
+    "topics",
+    "week",
+    "complete",
 }
 
 
 def _query_mode(query: str) -> str:
     query_tokens = _tokens(query)
-    has_contact_intent = bool(query_tokens & CONTACT_QUERY_TOKENS)
     has_health_intent = bool(query_tokens & HEALTH_QUERY_TOKENS)
+    contact_terms = CONTACT_QUERY_TOKENS - {"active", "currently", "who"}
+    has_contact_intent = bool(query_tokens & contact_terms) or (
+        "who" in query_tokens
+        and bool(query_tokens & {"engaging", "engagement", "engagements", "met", "meeting"})
+    )
 
     if has_contact_intent and has_health_intent:
         return "mixed"
@@ -1143,6 +1268,11 @@ def _stakeholder_text(record: dict[str, Any]) -> str:
             " ".join(account_brief.get("developer_contacts", [])),
             " ".join(account_brief.get("engaged_internal_teams", [])),
             " ".join(account_brief.get("recent_reference_contacts", [])),
+            " ".join(account_brief.get("active_engagements", [])),
+            " ".join(account_brief.get("active_escalations", [])),
+            " ".join(account_brief.get("complete_health", [])),
+            " ".join(account_brief.get("commitments", [])),
+            " ".join(account_brief.get("cross_team_interactions", [])),
             str(account_brief.get("management_focus", "")),
             " ".join(account_brief.get("next_actions", [])),
         ]
@@ -1213,6 +1343,26 @@ def _build_context(request: RelationshipQueryInput, mode: str) -> tuple[str, lis
     stakeholders: list[str] = []
     sources: list[RelationshipSource] = []
 
+    if mode == "health_check" and query_tokens & {"concern", "concerns", "discussed", "topics", "week"}:
+        weekly_concerns = LEADERSHIP_DASHBOARD_SHOWCASE["weekly_developer_concerns"]
+        concern_lines = ["Weekly developer concerns dashboard:"]
+        for function_name, concerns in weekly_concerns.items():
+            if function_name == "most_mentioned_concern":
+                continue
+            concern_lines.append(f"{function_name}: {'; '.join(concerns)}")
+        concern_lines.append(f"Most Mentioned Concern: {weekly_concerns['most_mentioned_concern']}")
+        context_blocks.append("\n".join(concern_lines))
+
+    if mode == "health_check" and query_tokens & {"leadership", "attention", "priority", "priorities", "accounts"}:
+        context_blocks.append(
+            "\n".join(
+                [
+                    "Leadership attention dashboard:",
+                    *LEADERSHIP_DASHBOARD_SHOWCASE["leadership_attention_accounts"],
+                ]
+            )
+        )
+
     for record in records:
         stakeholder = record["stakeholder"]
         account_brief = ACCOUNT_BRIEFS_BY_DEVELOPER.get(stakeholder["name"], {})
@@ -1231,6 +1381,8 @@ def _build_context(request: RelationshipQueryInput, mode: str) -> tuple[str, lis
                 f"Developer-side contacts: {'; '.join(account_brief.get('developer_contacts', [])) or 'Not available'}",
                 f"Anarock references and teams engaged: {'; '.join(account_brief.get('engaged_internal_teams', [])) or 'Not available'}",
                 f"Recent Anarock reference meetings: {'; '.join(account_brief.get('recent_reference_contacts', [])) or 'Not available'}",
+                f"Active department engagements: {'; '.join(account_brief.get('active_engagements', [])) or 'Not available'}",
+                f"Cross-team interaction summary: {'; '.join(account_brief.get('cross_team_interactions', [])) or 'Not available'}",
                 f"Available source mix: {dict(source_counter)}",
             ]
         elif mode == "health_check":
@@ -1238,9 +1390,12 @@ def _build_context(request: RelationshipQueryInput, mode: str) -> tuple[str, lis
                 f"Developer account: {stakeholder['name']}",
                 f"Executive status: {account_brief.get('executive_status', 'Not available')}",
                 f"Pending escalations: {'; '.join(account_brief.get('escalations', [])) or 'None recorded'}",
+                f"Active escalation dashboard: {'; '.join(account_brief.get('active_escalations', [])) or 'Not available'}",
                 f"Pending collections: {account_brief.get('pending_collections', 'Not available')}",
                 f"Actionable items: {'; '.join(account_brief.get('next_actions', [])) or 'Not available'}",
                 f"Management focus: {account_brief.get('management_focus', 'Not available')}",
+                f"Commitments dashboard: {'; '.join(account_brief.get('commitments', [])) or 'Not available'}",
+                f"Complete health dashboard: {'; '.join(account_brief.get('complete_health', [])) or 'Not available'}",
                 f"Available source mix: {dict(source_counter)}",
             ]
         else:
@@ -1308,9 +1463,68 @@ Rules:
 - Health-check mode: only give pending escalations, pending collections, risks/blockers, management focus, and actionable items. Do not include developer-side contact lists, Anarock references, teams engaged, or who met whom.
 - Mixed mode: if the user asks both contact/reference and health-check in the same query, politely ask them to run one query for contacts/references and one query for health check. Do not answer both.
 - For contact/reference mode, include Anarock employee name, vertical/team, city, developer official met, meeting date, meeting channel when available, and why that employee is a useful reference. Sort recent meetings by most recent first.
+- For contact/reference queries asking who is currently engaging or active with a developer, use this exact response structure when data exists:
+  Active Engagements
+  [vertical/team name]
+  [engagement topic]
+  [meeting recency/count when available]
+  Most Engaged Stakeholders
+  1. [Anarock employee] - [vertical/team]
+  Total Active Teams
+  [number] Departments
+- For active engagement answers, use only active department engagements, developer-side contacts, Anarock references, and recent meetings. Do not include health-check content.
 - Do not lead with relationship score, relationship strength, warm introductions, stakeholder preferences, or generic relationship history unless the user explicitly asks for them.
+- Do not use markdown tables unless the user explicitly asks for a table. Prefer clean section headings with short lines, matching the provided Anarock ONE response patterns.
 - For health-check mode, use short sections such as Pending Escalations, Collections, Risks, and Actionable Items.
 - For contact/reference mode, use short sections such as Developer Contacts, Anarock References, and Recent Meetings.
+- For "Is there any active escalation with [developer]?", use this structure when active escalation dashboard data exists:
+  Developer: [developer]
+  Active Escalations: [count]
+  [department]
+  [concern]
+  [status/age]
+  Recommended Action
+  [recommended action]
+- For "What are the top developer concerns this week?", use this structure:
+  Most Discussed Topics
+  [function]
+  [concerns]
+  Most Mentioned Concern
+  [single concern]
+- For "Which accounts need leadership attention?", use this structure:
+  High Priority Accounts
+  [account]
+  [reason]
+  Recommended Focus
+  [focus]
+- For "What commitments have been made to this developer?", use this structure:
+  Developer: [developer]
+  [department]
+  [commitment]
+  Risk Alert
+  [risk alert]
+- For "Show all interactions across teams for [developer]", use this structure:
+  Last 30 Days Activity
+  [department]
+  [interaction counts]
+  Engagement Summary
+  [summary metrics]
+  Relationship Health Score
+  [score]
+  Most Engaged Function
+  [function]
+- For "Give me a complete health check of [developer]", use this structure:
+  Relationship Status: [status]
+  Departments Engaged
+  [departments]
+  Last 30 Days
+  [activity metrics]
+  Open Risks
+  [risks]
+  Upcoming Commitments
+  [commitments]
+  AI Recommendation
+  [recommendation]
 - Keep the answer concise and useful for upper management reviewing developer accounts.
 - Return only valid JSON with this shape:
   {{"answer":"markdown answer text","follow_up_questions":["question 1","question 2","question 3"]}}

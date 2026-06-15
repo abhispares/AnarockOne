@@ -476,11 +476,53 @@ button {
   padding-top: 5px;
 }
 
-.message-body > p {
+.formatted-message {
   margin: 0;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   line-height: 1.62;
+}
+
+.message-paragraph {
+  margin: 0;
+}
+
+.message-table-wrap {
+  width: 100%;
+  margin: 10px 0 20px;
+  overflow-x: auto;
+  border: 1px solid #30333b;
+  border-radius: 8px;
+  background: rgba(21, 22, 26, 0.72);
+}
+
+.message-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.message-table th,
+.message-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #292b31;
+  text-align: left;
+  vertical-align: top;
+}
+
+.message-table th {
+  color: #f4f5f7;
+  background: rgba(255, 255, 255, 0.055);
+  font-weight: 700;
+}
+
+.message-table td {
+  color: #d7dae2;
+}
+
+.message-table tr:last-child td {
+  border-bottom: 0;
 }
 
 .message-heading {
@@ -565,7 +607,8 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 12px;
+  margin-bottom: 4px;
 }
 
 .follow-ups button {
@@ -664,7 +707,7 @@ button {
 }
 
 .composer-center {
-  margin: 0 auto 28px;
+  margin: 0;
 }
 
 .composer-bottom {
@@ -679,12 +722,25 @@ button {
 
 .composer-dock {
   position: fixed;
+  top: 0;
   left: calc(280px + (100vw - 280px) / 2);
-  bottom: 18px;
   z-index: 3;
   display: grid;
   width: min(860px, calc(100% - 312px));
-  transform: translateX(-50%);
+  transform: translate(-50%, var(--composer-y, 300px));
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    left 260ms ease,
+    width 260ms ease;
+  will-change: transform;
+}
+
+.composer-dock-home {
+  --composer-y: 300px;
+}
+
+.composer-dock-active {
+  --composer-y: calc(100vh - 84px);
 }
 
 .history-collapsed ~ .composer-dock,
@@ -693,11 +749,12 @@ button {
   width: min(860px, calc(100% - 88px));
 }
 
-.composer-dock .composer-bottom {
+.composer-dock .composer {
   position: relative;
   left: auto;
   bottom: auto;
   width: 100%;
+  margin: 0;
   transform: none;
 }
 
@@ -712,6 +769,12 @@ button {
   transform: translateX(-50%);
   pointer-events: none;
   background: linear-gradient(to top, rgba(9, 10, 13, 0.98), rgba(9, 10, 13, 0));
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.composer-dock-active::before {
+  opacity: 1;
 }
 
 .composer textarea {
