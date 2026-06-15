@@ -4,12 +4,19 @@ import {
   ArrowUp,
   Bot,
   ChevronDown,
+  Check,
   CircleAlert,
+  Pencil,
+  MessageSquarePlus,
+  PanelLeftClose,
+  PanelLeftOpen,
   Loader2,
   Mail,
   MessageSquareText,
+  Search,
   UserRound,
   UsersRound,
+  X,
   BriefcaseBusiness,
 } from "lucide-react";
 import "./styles.css";
@@ -17,28 +24,6 @@ import "./styles.css";
 const API_URL =
   import.meta.env.VITE_RELATIONSHIP_API_URL ||
   "/relationship-intelligence/invoke";
-
-const stakeholders = [
-  "Abhishek",
-  "Nidhi",
-  "Jiwesh",
-  "Radhika",
-  "Manav",
-  "Sneha",
-  "Arjun",
-  "Kavya",
-  "Rahul",
-  "Pooja",
-  "Dev",
-  "Meera",
-  "Samar",
-  "Tanya",
-  "Vikrant",
-];
-
-function stakeholderPrompt(name) {
-  return `Who has recently interacted with ${name} and what should I know before outreach?`;
-}
 
 const sourceIcons = {
   "Microsoft Teams meeting": UsersRound,
@@ -48,6 +33,14 @@ const sourceIcons = {
 
 const TYPE_SPEED_MS = 12;
 const TYPE_CHUNK_SIZE = 3;
+const EMPTY_MESSAGES = [
+  {
+    id: "welcome",
+    role: "assistant",
+    content: "",
+    sources: [],
+  },
+];
 
 function createMessageId() {
   if (globalThis.crypto?.randomUUID) {
@@ -62,35 +55,54 @@ function SourceIcon({ source }) {
   return <Icon size={14} aria-hidden="true" />;
 }
 
+function FormattedMessageText({ text }) {
+  const lines = text.split("\n");
+
+  return lines.map((line, lineIndex) => {
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    const content = headingMatch ? headingMatch[2] : line;
+    const parts = content.split(/(\*\*[^*]+\*\*)/g);
+    const renderedParts = parts.map((part, partIndex) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={`${lineIndex}-${partIndex}`}>{part.slice(2, -2)}</strong>;
+      }
+
+      return <React.Fragment key={`${lineIndex}-${partIndex}`}>{part}</React.Fragment>;
+    });
+
+    if (headingMatch) {
+      return (
+        <React.Fragment key={`line-${lineIndex}`}>
+          <span className="message-heading">{renderedParts}</span>
+          {lineIndex < lines.length - 1 ? "\n" : null}
+        </React.Fragment>
+      );
+    }
+
+    return (
+      <React.Fragment key={`line-${lineIndex}`}>
+        {renderedParts}
+        {lineIndex < lines.length - 1 ? "\n" : null}
+      </React.Fragment>
+    );
+  });
+}
+
 function App() {
-  const [messages, setMessages] = useState([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: "",
-      sources: [],
-    },
-  ]);
+  const [messages, setMessages] = useState(EMPTY_MESSAGES);
+  const [chatSessions, setChatSessions] = useState([]);
+  const [activeChatId, setActiveChatId] = useState(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
   const [input, setInput] = useState("");
-  const [stakeholder, setStakeholder] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editDraft, setEditDraft] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const hasStarted = messages.some((message) => message.role === "user");
 
-  async function sendQuery(queryText = input, stakeholderName = stakeholder) {
-    const query = queryText.trim();
-    if (!query || isLoading) return;
-
-    setMessages((current) => [
-      ...current,
-      { id: createMessageId(), role: "user", content: query },
-    ]);
-    setInput("");
-    setError("");
-    setIsLoading(true);
-
+  async function appendAssistantResponse(query) {
     try {
       const response = await fetch(API_URL, {
         method: "POST",
@@ -98,7 +110,6 @@ function App() {
         body: JSON.stringify({
           input: {
             query,
-            stakeholder_name: stakeholderName || undefined,
           },
         }),
       });
@@ -120,13 +131,14 @@ function App() {
           isTyping: true,
           sources: output.sources || [],
           stakeholders: output.stakeholders || [],
+          followUps: output.follow_up_questions || [],
         },
       ]);
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to fetch relationship intelligence."
+          : "Unable to fetch account intelligence."
       );
       setMessages((current) => [
         ...current,
@@ -135,11 +147,48 @@ function App() {
           role: "assistant",
           content: "",
           fullContent:
-            "I couldn’t reach the relationship intelligence API. Check that the FastAPI backend is running on port 8000.",
+            "I couldn’t reach the account intelligence API. Check that the FastAPI backend is running on port 8000.",
           isTyping: true,
           sources: [],
         },
       ]);
+    }
+  }
+
+  async function sendQuery(queryText = input) {
+    const query = queryText.trim();
+    if (!query || isLoading) return;
+    const nextChatId = activeChatId || createMessageId();
+
+    if (!activeChatId) {
+      setActiveChatId(nextChatId);
+      setChatSessions((current) => [
+        {
+          id: nextChatId,
+          title: query,
+          messages: EMPTY_MESSAGES,
+          updatedAt: Date.now(),
+        },
+        ...current,
+      ]);
+    }
+
+    setMessages((current) => [
+      ...current.map((message) =>
+        message.role === "assistant" && message.followUps?.length
+          ? { ...message, followUps: [] }
+          : message
+      ),
+      { id: createMessageId(), role: "user", content: query },
+    ]);
+    setInput("");
+    setEditingMessageId(null);
+    setEditDraft("");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await appendAssistantResponse(query);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -149,6 +198,73 @@ function App() {
   function handleSubmit(event) {
     event.preventDefault();
     sendQuery();
+  }
+
+  function startNewChat() {
+    if (isLoading) return;
+    setMessages(EMPTY_MESSAGES);
+    setActiveChatId(null);
+    setInput("");
+    setEditingMessageId(null);
+    setEditDraft("");
+    setError("");
+    inputRef.current?.focus();
+  }
+
+  function openChat(session) {
+    if (isLoading) return;
+    setActiveChatId(session.id);
+    setMessages(session.messages);
+    setInput("");
+    setEditingMessageId(null);
+    setEditDraft("");
+    setError("");
+  }
+
+  function startEditingQuery(message) {
+    if (isLoading) return;
+    setEditingMessageId(message.id);
+    setEditDraft(message.content);
+  }
+
+  function cancelEditingQuery() {
+    if (isLoading) return;
+    setEditingMessageId(null);
+    setEditDraft("");
+  }
+
+  async function submitEditedQuery(messageId) {
+    const query = editDraft.trim();
+    if (!query || isLoading) return;
+    const messageIndex = messages.findIndex((message) => message.id === messageId);
+
+    if (messageIndex === -1) return;
+
+    setMessages((current) =>
+      current.slice(0, messageIndex + 1).map((message) => {
+        if (message.id === messageId) {
+          return { ...message, content: query };
+        }
+
+        if (message.role === "assistant" && message.followUps?.length) {
+          return { ...message, followUps: [] };
+        }
+
+        return message;
+      })
+    );
+
+    setEditingMessageId(null);
+    setEditDraft("");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await appendAssistantResponse(query);
+    } finally {
+      setIsLoading(false);
+      inputRef.current?.focus();
+    }
   }
 
   useEffect(() => {
@@ -192,75 +308,202 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    if (!activeChatId || !hasStarted) {
+      return;
+    }
+
+    setChatSessions((current) =>
+      current.map((session) =>
+        session.id === activeChatId
+          ? {
+              ...session,
+              messages,
+              updatedAt: Date.now(),
+            }
+          : session
+      )
+    );
+  }, [activeChatId, hasStarted, messages]);
+
   return (
     <main className="page">
       <header className="topbar">
         <div className="brand">
           <img src="/assets/anarock-logo.png" alt="Anarock" />
           <div>
-            <strong>AnarockOne</strong>
-            <span>Relationship Intelligence</span>
+            <strong>Anarock ONE</strong>
+            <span>Executive Account Intelligence</span>
           </div>
         </div>
-        <div className="status">POC data</div>
+        <div className="ap-card" aria-label="AP contact">
+          <div className="ap-avatar">AP</div>
+          <div>
+            <strong>Anuj Puri</strong>
+            <span>Chairman, ANAROCK</span>
+          </div>
+        </div>
       </header>
 
-      <section className={`chat ${hasStarted ? "chat-active" : ""}`}>
-        <div className={`intro ${hasStarted ? "compact-intro" : ""}`}>
-          {!hasStarted ? <h1>AnarockOne</h1> : null}
-        </div>
-
-        {!hasStarted ? <Composer hasStarted={hasStarted} input={input} setInput={setInput} stakeholder={stakeholder} setStakeholder={setStakeholder} isLoading={isLoading} inputRef={inputRef} handleSubmit={handleSubmit} /> : null}
-
-        <div className={`messages ${hasStarted ? "active" : ""}`}>
-          {messages.map((message) => (
-            message.content || message.isTyping ? (
-              <article className={`message ${message.role}`} key={message.id}>
-              <div className="avatar" aria-hidden="true">
-                {message.role === "assistant" ? <Bot size={17} /> : <UserRound size={17} />}
-              </div>
-              <div className="message-body">
-                <p>
-                  {message.content}
-                  {message.isTyping ? <span className="typing-cursor" /> : null}
-                </p>
-                {!message.isTyping && message.stakeholders?.length ? (
-                  <div className="stakeholder-tags">
-                    {message.stakeholders.map((name) => (
-                      <span key={name}>{name}</span>
-                    ))}
-                  </div>
-                ) : null}
-                {!message.isTyping && message.sources?.length ? (
-                  <Sources sources={message.sources} />
-                ) : null}
-              </div>
-              </article>
-            ) : null
-          ))}
-
-          {isLoading ? (
-            <article className="message assistant">
-              <div className="avatar" aria-hidden="true">
-                <Loader2 className="spin" size={17} />
-              </div>
-              <div className="message-body">
-                <p>Reading relationship history...</p>
-              </div>
-            </article>
-          ) : null}
-          <div className="scroll-anchor" ref={messagesEndRef} aria-hidden="true" />
-        </div>
-
-        {error ? (
-          <div className="error" role="alert">
-            <CircleAlert size={16} aria-hidden="true" />
-            {error}
+      <div className={`workspace ${isHistoryOpen ? "" : "history-collapsed"}`}>
+        <aside className="history-panel" aria-label="Search history">
+          <div className="history-header">
+            <button className="new-chat-button" type="button" onClick={startNewChat} disabled={isLoading}>
+              <MessageSquarePlus size={16} aria-hidden="true" />
+              <span>New chat</span>
+            </button>
+            <button
+              type="button"
+              className="history-toggle"
+              onClick={() => setIsHistoryOpen((value) => !value)}
+              aria-label={isHistoryOpen ? "Collapse history" : "Expand history"}
+            >
+              {isHistoryOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
+            </button>
           </div>
-        ) : null}
-      </section>
+          <div className="history-title">Recent</div>
+          <div className="history-list">
+            {chatSessions.length ? (
+              chatSessions.map((session) => (
+                <button
+                  type="button"
+                  className={session.id === activeChatId ? "active-history" : ""}
+                  key={session.id}
+                  onClick={() => openChat(session)}
+                  title={session.title}
+                >
+                  <Search size={14} aria-hidden="true" />
+                  <span>{session.title}</span>
+                </button>
+              ))
+            ) : (
+              <div className="empty-history">No searches yet</div>
+            )}
+          </div>
+        </aside>
 
-      {hasStarted ? <Composer hasStarted={hasStarted} input={input} setInput={setInput} stakeholder={stakeholder} setStakeholder={setStakeholder} isLoading={isLoading} inputRef={inputRef} handleSubmit={handleSubmit} /> : null}
+        <section className={`chat ${hasStarted ? "chat-active" : ""}`}>
+          <div className={`intro ${hasStarted ? "compact-intro" : ""}`}>
+            {!hasStarted ? <h1>Anarock ONE</h1> : null}
+          </div>
+
+          {!hasStarted ? <Composer hasStarted={hasStarted} input={input} setInput={setInput} isLoading={isLoading} inputRef={inputRef} handleSubmit={handleSubmit} /> : null}
+
+          <div className={`messages ${hasStarted ? "active" : ""}`}>
+            {messages.map((message) => (
+              message.content || message.isTyping ? (
+                <article className={`message ${message.role}`} key={message.id}>
+                <div className="avatar" aria-hidden="true">
+                  {message.role === "assistant" ? <Bot size={17} /> : <UserRound size={17} />}
+                </div>
+                <div className="message-body">
+                  {message.role === "user" ? (
+                    editingMessageId === message.id ? (
+                      <form
+                        className="inline-edit"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          submitEditedQuery(message.id);
+                        }}
+                      >
+                        <textarea
+                          value={editDraft}
+                          onChange={(event) => setEditDraft(event.target.value)}
+                          rows="2"
+                          autoFocus
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                              event.preventDefault();
+                              submitEditedQuery(message.id);
+                            }
+
+                            if (event.key === "Escape") {
+                              cancelEditingQuery();
+                            }
+                          }}
+                        />
+                        <div className="inline-edit-actions">
+                          <button
+                            type="button"
+                            onClick={cancelEditingQuery}
+                            aria-label="Cancel edit"
+                            title="Cancel"
+                          >
+                            <X size={14} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={!editDraft.trim()}
+                            aria-label="Save edited query"
+                            title="Save"
+                          >
+                            <Check size={14} aria-hidden="true" />
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        type="button"
+                        className="edit-query"
+                        onClick={() => startEditingQuery(message)}
+                        aria-label="Edit query"
+                        title="Edit query"
+                      >
+                        <Pencil size={13} aria-hidden="true" />
+                      </button>
+                    )
+                  ) : null}
+                  {editingMessageId !== message.id ? (
+                    <p>
+                      <FormattedMessageText text={message.content} />
+                      {message.isTyping ? <span className="typing-cursor" /> : null}
+                    </p>
+                  ) : null}
+                  {!message.isTyping && message.sources?.length ? (
+                    <Sources sources={message.sources} />
+                  ) : null}
+                  {!message.isTyping && message.followUps?.length ? (
+                    <FollowUps
+                      questions={message.followUps}
+                      isLoading={isLoading}
+                      onSelect={(question) => sendQuery(question)}
+                    />
+                  ) : null}
+                </div>
+                </article>
+              ) : null
+            ))}
+
+            {isLoading ? (
+              <article className="message assistant">
+                <div className="avatar" aria-hidden="true">
+                  <Bot size={17} />
+                </div>
+                <div className="message-body">
+                  <div className="thinking-state" aria-live="polite">
+                    <span className="thinking-copy" />
+                    <span />
+                  </div>
+                </div>
+              </article>
+            ) : null}
+            <div className="scroll-anchor" ref={messagesEndRef} aria-hidden="true" />
+          </div>
+
+          {error ? (
+            <div className="error" role="alert">
+              <CircleAlert size={16} aria-hidden="true" />
+              {error}
+            </div>
+          ) : null}
+        </section>
+      </div>
+
+      {hasStarted ? (
+        <div className="composer-dock">
+          <Composer hasStarted={hasStarted} input={input} setInput={setInput} isLoading={isLoading} inputRef={inputRef} handleSubmit={handleSubmit} />
+        </div>
+      ) : null}
     </main>
   );
 }
@@ -269,39 +512,17 @@ function Composer({
   hasStarted,
   input,
   setInput,
-  stakeholder,
-  setStakeholder,
   isLoading,
   inputRef,
   handleSubmit,
 }) {
   return (
     <form className={`composer ${hasStarted ? "composer-bottom" : "composer-center"}`} onSubmit={handleSubmit}>
-      <div className="stakeholder-search">
-        <input
-          aria-label="Stakeholder filter"
-          list="stakeholder-options"
-          value={stakeholder}
-          onChange={(event) => {
-            const nextStakeholder = event.target.value;
-            setStakeholder(nextStakeholder);
-            if (!input.trim() && stakeholders.includes(nextStakeholder)) {
-              setInput(stakeholderPrompt(nextStakeholder));
-            }
-          }}
-          placeholder="Stakeholder"
-        />
-        <datalist id="stakeholder-options">
-          {stakeholders.map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
-      </div>
       <textarea
         ref={inputRef}
         value={input}
         onChange={(event) => setInput(event.target.value)}
-        placeholder="Ask about warm intros, commitments, or concerns..."
+        placeholder="Hi Anuj, how can we help you?"
         rows="1"
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
@@ -314,6 +535,23 @@ function Composer({
         {isLoading ? <Loader2 className="spin" size={18} /> : <ArrowUp size={18} />}
       </button>
     </form>
+  );
+}
+
+function FollowUps({ questions, isLoading, onSelect }) {
+  return (
+    <div className="follow-ups">
+      {questions.map((question) => (
+        <button
+          type="button"
+          key={question}
+          disabled={isLoading}
+          onClick={() => onSelect(question)}
+        >
+          {question}
+        </button>
+      ))}
+    </div>
   );
 }
 

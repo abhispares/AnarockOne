@@ -124,6 +124,192 @@ button {
   font-size: 12px;
 }
 
+.ap-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 10px 7px 8px;
+  border: 1px solid #30333b;
+  border-radius: 10px;
+  background: rgba(21, 22, 26, 0.92);
+}
+
+.ap-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--brand);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ap-card strong,
+.ap-card span {
+  display: block;
+  white-space: nowrap;
+}
+
+.ap-card strong {
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.ap-card span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.workspace {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  min-height: 0;
+  height: calc(100vh - 64px);
+}
+
+.workspace.history-collapsed {
+  grid-template-columns: 56px minmax(0, 1fr);
+}
+
+.history-panel {
+  min-height: 0;
+  padding: 10px 8px;
+  border-right: 1px solid var(--line);
+  background: #101114;
+  overflow-y: auto;
+}
+
+.history-collapsed .history-panel {
+  padding: 10px;
+  border-right: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.history-collapsed .history-title,
+.history-collapsed .new-chat-button span,
+.history-collapsed .history-list button span,
+.history-collapsed .empty-history {
+  display: none;
+}
+
+.history-toggle {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  color: #d8dbe2;
+  background: transparent;
+}
+
+.history-toggle:hover,
+.new-chat-button:hover,
+.history-list button:hover {
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.new-chat-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  color: #f2f3f5;
+  background: transparent;
+  font-size: 14px;
+  text-align: left;
+}
+
+.history-collapsed .history-header {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.history-collapsed .new-chat-button {
+  flex: 0 0 auto;
+  width: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+.history-title {
+  margin: 0 8px 8px;
+  color: #8f96a3;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.history-list {
+  display: grid;
+  gap: 2px;
+}
+
+.history-list button {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #e3e5ea;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+}
+
+.history-collapsed .history-list button {
+  grid-template-columns: 16px;
+  justify-content: center;
+  padding: 8px;
+}
+
+.history-list button:hover {
+  border-color: transparent;
+}
+
+.history-list button.active-history {
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.105);
+}
+
+.history-list button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-history {
+  padding: 8px 9px;
+  color: #777f8d;
+  font-size: 13px;
+}
+
 .chat {
   width: min(860px, calc(100% - 32px));
   margin: 0 auto;
@@ -131,7 +317,7 @@ button {
   height: calc(100vh - 64px);
   overflow-y: auto;
   padding: 38px 0 28px;
-  scroll-padding-bottom: 156px;
+  scroll-padding-bottom: 112px;
   scrollbar-gutter: stable;
 }
 
@@ -140,8 +326,8 @@ button {
 }
 
 .intro {
-  margin: 96px auto 22px;
-  width: min(620px, 100%);
+  margin: 118px auto 18px;
+  width: min(860px, calc(100% - 32px));
   text-align: center;
   transition:
     margin 180ms ease,
@@ -157,8 +343,8 @@ button {
 .intro h1 {
   margin: 0;
   color: #ffffff;
-  font-size: clamp(42px, 7vw, 68px);
-  line-height: 1;
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: 1.08;
   font-weight: 720;
   letter-spacing: 0;
 }
@@ -171,6 +357,7 @@ button {
 
 .messages.active {
   padding-top: 6px;
+  padding-bottom: 112px;
 }
 
 .message {
@@ -188,6 +375,7 @@ button {
 }
 
 .message.user .message-body {
+  position: relative;
   grid-column: 1;
   grid-row: 1;
   justify-self: end;
@@ -196,6 +384,77 @@ button {
   border: 1px solid rgba(176, 82, 161, 0.34);
   border-radius: 12px;
   background: rgba(176, 82, 161, 0.12);
+}
+
+.edit-query {
+  position: absolute;
+  left: -34px;
+  top: 4px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #30333b;
+  border-radius: 8px;
+  color: #cfd2da;
+  background: rgba(21, 22, 26, 0.92);
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.message.user:hover .edit-query,
+.edit-query:focus-visible {
+  opacity: 1;
+}
+
+.inline-edit {
+  display: grid;
+  gap: 8px;
+  width: min(560px, 72vw);
+}
+
+.inline-edit textarea {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 9px;
+  border: 1px solid rgba(176, 82, 161, 0.42);
+  border-radius: 8px;
+  outline: 0;
+  color: var(--ink);
+  background: rgba(9, 10, 13, 0.42);
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.inline-edit textarea:focus {
+  border-color: rgba(176, 82, 161, 0.78);
+}
+
+.inline-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.inline-edit-actions button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #30333b;
+  border-radius: 8px;
+  color: #eef0f5;
+  background: rgba(21, 22, 26, 0.94);
+}
+
+.inline-edit-actions button[type="submit"] {
+  border-color: rgba(176, 82, 161, 0.52);
+  background: var(--brand);
+}
+
+.inline-edit-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .avatar {
@@ -224,8 +483,19 @@ button {
   line-height: 1.62;
 }
 
+.message-heading {
+  display: inline-block;
+  margin-top: 8px;
+  color: #ffffff;
+  font-weight: 760;
+}
+
+.message-heading:first-child {
+  margin-top: 0;
+}
+
 .scroll-anchor {
-  height: 156px;
+  height: 112px;
 }
 
 .typing-cursor {
@@ -239,23 +509,83 @@ button {
   animation: cursor-blink 0.9s steps(2, start) infinite;
 }
 
-.stakeholder-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+.thinking-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 28px;
+  color: #c7cbd4;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
-.stakeholder-tags span {
-  padding: 5px 9px;
+.thinking-copy::before {
+  content: "Conducting strategic analysis...";
+  animation: thinking-copy 3.2s infinite;
+}
+
+.thinking-state span:last-child,
+.thinking-state span:last-child::before,
+.thinking-state span:last-child::after {
+  display: block;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
-  color: #f3c6eb;
-  background: rgba(176, 82, 161, 0.18);
-  font-size: 12px;
+  background: #9da3af;
+  animation: thinking-pulse 1.1s infinite ease-in-out;
+}
+
+.thinking-state span:last-child {
+  position: relative;
+  animation-delay: 0.16s;
+}
+
+.thinking-state span:last-child::before,
+.thinking-state span:last-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+}
+
+.thinking-state span:last-child::before {
+  left: -9px;
+  animation-delay: 0s;
+}
+
+.thinking-state span:last-child::after {
+  left: 9px;
+  animation-delay: 0.32s;
 }
 
 .sources {
   margin-top: 14px;
+}
+
+.follow-ups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.follow-ups button {
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #30333b;
+  border-radius: 999px;
+  color: #e7d7e8;
+  background: rgba(176, 82, 161, 0.1);
+  font-size: 13px;
+}
+
+.follow-ups button:hover:not(:disabled) {
+  border-color: rgba(176, 82, 161, 0.62);
+  background: rgba(176, 82, 161, 0.17);
+}
+
+.follow-ups button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .sources > button {
@@ -322,7 +652,7 @@ button {
 
 .composer {
   display: grid;
-  grid-template-columns: 146px minmax(0, 1fr) 42px;
+  grid-template-columns: minmax(0, 1fr) 42px;
   align-items: end;
   gap: 10px;
   width: min(860px, calc(100% - 32px));
@@ -339,7 +669,7 @@ button {
 
 .composer-bottom {
   position: fixed;
-  left: 50%;
+  left: calc(280px + (100vw - 280px) / 2);
   bottom: 18px;
   z-index: 2;
   transform: translateX(-50%);
@@ -347,7 +677,31 @@ button {
   max-height: 118px;
 }
 
-.composer-bottom::before {
+.composer-dock {
+  position: fixed;
+  left: calc(280px + (100vw - 280px) / 2);
+  bottom: 18px;
+  z-index: 3;
+  display: grid;
+  width: min(860px, calc(100% - 312px));
+  transform: translateX(-50%);
+}
+
+.history-collapsed ~ .composer-dock,
+.page:has(.history-collapsed) .composer-dock {
+  left: calc(56px + (100vw - 56px) / 2);
+  width: min(860px, calc(100% - 88px));
+}
+
+.composer-dock .composer-bottom {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: 100%;
+  transform: none;
+}
+
+.composer-dock::before {
   content: "";
   position: fixed;
   left: 50%;
@@ -360,23 +714,12 @@ button {
   background: linear-gradient(to top, rgba(9, 10, 13, 0.98), rgba(9, 10, 13, 0));
 }
 
-.stakeholder-search {
-  min-width: 0;
-  border-right: 1px solid var(--line);
-}
-
-.stakeholder-search input,
 .composer textarea {
   width: 100%;
   border: 0;
   outline: 0;
   color: var(--ink);
   background: transparent;
-}
-
-.stakeholder-search input {
-  height: 42px;
-  padding: 0 8px;
 }
 
 .composer textarea {
@@ -421,6 +764,32 @@ button {
   }
 }
 
+@keyframes thinking-pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.32;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes thinking-copy {
+  0%,
+  44% {
+    content: "Conducting strategic analysis...";
+  }
+
+  50%,
+  94% {
+    content: "Connecting the dots...";
+  }
+}
+
 @media (max-width: 680px) {
   .topbar {
     padding: 0 14px;
@@ -431,35 +800,47 @@ button {
   }
 
   .brand span,
-  .status {
+  .ap-card span {
+    display: none;
+  }
+
+  .ap-card {
+    padding-right: 8px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .history-panel {
+    display: none;
+  }
+
+  .history-toggle {
     display: none;
   }
 
   .chat {
     padding-top: 26px;
-    scroll-padding-bottom: 190px;
+    scroll-padding-bottom: 142px;
   }
 
   .composer {
     grid-template-columns: minmax(0, 1fr) 42px;
   }
 
+  .composer-dock {
+    left: 50%;
+    width: min(860px, calc(100% - 32px));
+  }
+
   .composer-bottom {
+    left: 50%;
     max-height: 154px;
   }
 
   .scroll-anchor {
-    height: 190px;
-  }
-
-  .stakeholder-search {
-    grid-column: 1 / -1;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .stakeholder-search input {
-    height: 34px;
+    height: 142px;
   }
 
   .composer textarea {
